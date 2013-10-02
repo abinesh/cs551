@@ -11,10 +11,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+//Examples for system calls getaddrinfo, socket, connect were referenced from http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 static int connect_to(char *ip_address,char *port){
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
-    char s[INET6_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
@@ -27,12 +27,10 @@ static int connect_to(char *ip_address,char *port){
     }
     for (p = servinfo; p != NULL ; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            printf("error in client creating socket");
             continue;
         }
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
-            printf("error in client connect");
             continue;
         }
         break;
@@ -43,7 +41,7 @@ static int connect_to(char *ip_address,char *port){
         exit(-1);
     }
 
-    printf("client: connected successfully to %s:%s(Ignore previous errors for this)\n",s,port);
+    printf("client: connected successfully\n");
     freeaddrinfo(servinfo);
     return sockfd;
 }

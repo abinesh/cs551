@@ -13,6 +13,7 @@
 
 #define TOTAL_NO_OF_PENDING_CONNECTIONS 2048
 
+//Examples for system calls accept, ntohs were referenced from http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 static int receive_connection_from_client(int server_sock_fd, int *new_fd){
     struct sockaddr_in other_end_address;
     socklen_t sin_size;
@@ -29,6 +30,7 @@ static int receive_connection_from_client(int server_sock_fd, int *new_fd){
     return portno;
 }
 
+//Examples for system call listen was referenced from http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 void manager_fun(config c, int manager_sock_fd, FILE *log_file){
 	int new_fd;
 

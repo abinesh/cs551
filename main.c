@@ -57,29 +57,13 @@ static void read_config(char *file_name, config *c){
     fclose(file);
 }
 
-static int fork_children(config c, int manager_port_no, int manager_sock_fd){
-    int i=0;
-    pid_t pid;
-    for(i=0;i<c.num_nodes;i++){
-         pid = fork();
-        if (pid < 0)
-            printf( "Error creating a new child process\n");
-        else if (pid == 0) {
-            close(manager_sock_fd);
-            client_fun(manager_port_no);
-            return pid;
-        }
-        else if (pid > 0) {}
-    }
-    return pid;
-}
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
 
+//Examples for system calls getaddrinfo,socket,bind,getsockname,nthos were referenced from http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 static int find_port(int *sock_desc){
 
 	struct addrinfo hints, *servinfo, *p;
@@ -131,17 +115,26 @@ int main(int argv, char **argc){
         printf("Usage: main <config_file_path>\n");
         return -1;
     }
-    int pid;
     config c;
     read_config(argc[1], &c);
     int manager_sock_fd;
     int manager_port_no = find_port(&manager_sock_fd);
 
-    pid = fork_children(c, manager_port_no, manager_sock_fd);
-
-    if(pid==0){
-        return 0;
+    int i=0;
+    pid_t pid;
+    for(i=0;i<c.num_nodes;i++){
+        printf("forking child %d\n",i);
+         pid = fork();
+        if (pid < 0)
+            printf( "Error creating a new child process\n");
+        else if (pid == 0) {
+            close(manager_sock_fd);
+            client_fun(manager_port_no);
+            exit(0);
+        }
+        else if (pid > 0) {}
     }
+
     char filename[1024];
     sprintf(filename, "stage%d.manager.out",c.stage_num);
 	FILE *log_file = fopen(filename, "w");
