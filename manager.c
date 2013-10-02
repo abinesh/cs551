@@ -11,7 +11,6 @@
 #include <netdb.h>
 #include <string.h>
 
-#define TOTAL_NO_OF_PENDING_CONNECTIONS 2048
 
 //Examples for system calls accept, ntohs were referenced from http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 static int receive_connection_from_client(int server_sock_fd, int *new_fd){
@@ -34,10 +33,6 @@ static int receive_connection_from_client(int server_sock_fd, int *new_fd){
 void manager_fun(config c, int manager_sock_fd, FILE *log_file){
 	int new_fd;
 
-	if (listen(manager_sock_fd, TOTAL_NO_OF_PENDING_CONNECTIONS) == -1) {
-		printf("Error in listen");
-		exit(-1);
-	}
 
 	int client_id = 1;
 	while (client_id <= c.num_nodes) {

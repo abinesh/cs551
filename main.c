@@ -5,6 +5,8 @@
 #include "manager.h"
 #include "client.h"
 
+#define TOTAL_NO_OF_PENDING_CONNECTIONS 2048
+
 static void read_next_line(FILE *file, char *line){
     regex_t comments_line;
     regcomp(&comments_line, "#.*", REG_EXTENDED);
@@ -119,6 +121,11 @@ int main(int argv, char **argc){
     read_config(argc[1], &c);
     int manager_sock_fd;
     int manager_port_no = find_port(&manager_sock_fd);
+
+	if (listen(manager_sock_fd, TOTAL_NO_OF_PENDING_CONNECTIONS) == -1) {
+		printf("Error in listen");
+		exit(-1);
+	}
 
     int i=0;
     pid_t pid;
