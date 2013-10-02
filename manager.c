@@ -14,17 +14,17 @@
 #define TOTAL_NO_OF_PENDING_CONNECTIONS 2048
 
 static int receive_connection_from_client(int server_sock_fd, int *new_fd){
-    struct sockaddr_in their_addr; // connector's address information
+    struct sockaddr_in other_end_address;
     socklen_t sin_size;
 
-    sin_size = sizeof their_addr;
-    *new_fd = accept(server_sock_fd, (struct sockaddr *) &their_addr, &sin_size);
+    sin_size = sizeof other_end_address;
+    *new_fd = accept(server_sock_fd, (struct sockaddr *) &other_end_address, &sin_size);
     if (*new_fd == -1) {
-        perror("accept");
+        printf("Error in accept");
         exit(-1);
     }
 
-    int portno = ntohs(their_addr.sin_port);
+    int portno = ntohs(other_end_address.sin_port);
     printf("client port no in manager: %d\n", portno);
     return portno;
 }
@@ -33,15 +33,15 @@ void manager_fun(config c, int manager_sock_fd, FILE *log_file){
 	int new_fd;
 
 	if (listen(manager_sock_fd, TOTAL_NO_OF_PENDING_CONNECTIONS) == -1) {
-		perror("listen");
-		exit(1);
+		printf("Error in listen");
+		exit(-1);
 	}
 
 	int client_id = 1;
-	while (client_id <= c.num_nodes) { // main accept() loop
-	    fprintf(stderr, "waiting for connection no %d of %d\n", client_id, c.num_nodes);
+	while (client_id <= c.num_nodes) {
+	    printf( "waiting for connection no %d of %d\n", client_id, c.num_nodes);
 	    int client_port_no = receive_connection_from_client(manager_sock_fd, &new_fd);
-	    fprintf(stderr, "received connection from client\n");
+	    printf( "received connection from client\n");
 	    fprintf(log_file, "client %d port: %d\n", client_id, client_port_no);
 
         char buf[MSG_SIZE];

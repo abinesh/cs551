@@ -10,7 +10,7 @@ static void read_next_line(FILE *file, char *line){
     regcomp(&comments_line, "#.*", REG_EXTENDED);
 
     do{
-    //todo - fix 1024
+        //todo - fix 1024
         fgets (line,1024, file );
     }while(!regexec(&comments_line, line, 0, NULL, 0));
 }
@@ -27,7 +27,7 @@ static int read_int_from_line_format(char *line, char* line_prefix){
     regcomp(&stage_line, regex, REG_EXTENDED);
 
     if(regexec(&stage_line, line, 0, NULL, 0)){
-            fprintf(stderr,"Expected to find stage line, but fount %s, exiting\n",line);
+            printf("Expected to find stage line, but fount %s, exiting\n",line);
             return -1;
     };
 
@@ -38,7 +38,7 @@ static int read_int_from_line_format(char *line, char* line_prefix){
 static void read_config(char *file_name, config *c){
     FILE* file = fopen(file_name, "r");
     if(file==NULL){
-        fprintf(stderr,"Error: %s not found, exiting now\n",file_name);
+        printf("Error: %s not found, exiting now\n",file_name);
         fclose(file);
         exit(1);
     }
@@ -63,10 +63,10 @@ static int fork_children(config c, int manager_port_no, int manager_sock_fd){
     for(i=0;i<c.num_nodes;i++){
          pid = fork();
         if (pid < 0)
-            fprintf(stderr, "Error creating a new child process\n");
+            printf( "Error creating a new child process\n");
         else if (pid == 0) {
             close(manager_sock_fd);
-            client_fun(i, manager_port_no);
+            client_fun(manager_port_no);
             return pid;
         }
         else if (pid > 0) {}
@@ -80,55 +80,50 @@ static int fork_children(config c, int manager_port_no, int manager_sock_fd){
 #include <netdb.h>
 #include <string.h>
 
-//todo: clean up this code!
 static int find_port(int *sock_desc){
 
 	struct addrinfo hints, *servinfo, *p;
-		int rv,addrlen;
-		int socket_descriptor=0,portno;
-		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = INADDR_ANY;
-		struct sockaddr_in serv_addr;
+    int rv,addrlen;
+    int socket_descriptor=0,portno;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = INADDR_ANY;
+    struct sockaddr_in serv_addr;
 	int input_portno = 0;
 	char portnoString[10];
-		sprintf(portnoString,"%i", input_portno);
+    sprintf(portnoString,"%i", input_portno);
 
-		if ((rv = getaddrinfo(NULL, portnoString, &hints, &servinfo)) != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-				//return 1;
-		}
+    if ((rv = getaddrinfo(NULL, portnoString, &hints, &servinfo)) != 0) {
+            printf( "getaddrinfo: %s\n", gai_strerror(rv));
+    }
 
-		// loop through all the results and bind to the first we can
-		for(p = servinfo; p != NULL; p = p->ai_next) {
-			if ((socket_descriptor = socket(p->ai_family, p->ai_socktype,
-					p->ai_protocol)) == -1) {
-					perror("listener: socket");
-					continue;
-			}
-			if (bind(socket_descriptor, p->ai_addr, p->ai_addrlen) == -1) {
-				close(socket_descriptor);
-				perror("listener: bind");
-				continue;
-			}
-			break;
-		}
-		if (p == NULL) {
-			fprintf(stderr, "listener: failed to bind socket\n");
-			//return 2;
-		}
-		addrlen = sizeof(serv_addr);
-		int getsock_check=getsockname(socket_descriptor,(struct sockaddr *)&serv_addr, (socklen_t *)&addrlen) ;
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((socket_descriptor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+                printf("error in creating socket");
+                continue;
+        }
+        if (bind(socket_descriptor, p->ai_addr, p->ai_addrlen) == -1) {
+            close(socket_descriptor);
+            printf("error in bind");
+            continue;
+        }
+        break;
+    }
+    if (p == NULL) {
+        printf( "listener: failed to bind socket\n");
+    }
+    addrlen = sizeof(serv_addr);
+    int getsock_check=getsockname(socket_descriptor,(struct sockaddr *)&serv_addr, (socklen_t *)&addrlen) ;
 
-		   	if (getsock_check== -1) {
-		   			perror("getsockname");
-		   			exit(1);
-		   	}
-		portno =  ntohs(serv_addr.sin_port);
-		freeaddrinfo(servinfo);
-		*sock_desc=socket_descriptor;
-		return portno;
+        if (getsock_check== -1) {
+                printf("error in naming socket");
+                exit(1);
+        }
+    portno =  ntohs(serv_addr.sin_port);
+    freeaddrinfo(servinfo);
+    *sock_desc=socket_descriptor;
+    return portno;
 }
 
 int main(int argv, char **argc){
@@ -144,7 +139,6 @@ int main(int argv, char **argc){
 
     pid = fork_children(c, manager_port_no, manager_sock_fd);
 
-    // child process, exit.
     if(pid==0){
         return 0;
     }
